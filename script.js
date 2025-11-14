@@ -1,6 +1,3 @@
-// ================================
-// CONSTANTE JOC
-// ================================
 const SUBGAMES = [
   "carouri",
   "dame",
@@ -12,26 +9,48 @@ const SUBGAMES = [
 ];
 
 const SUBGAME_CONFIG = {
-  carouri: { label: "Carouri", icon: "♦", hint: "Alege câte carouri a luat fiecare jucător (0–8)." },
-  dame: { label: "Dame", icon: "👑", hint: "Alege câte dame a luat fiecare jucător (0–4)." },
-  popa_rosu: { label: "Popa Roșu", icon: "♥K", hint: "Selectează jucătorul care a luat Popa Roșu." },
-  zece_trefla: { label: "10 de trefla", icon: "♣10", hint: "Selectează jucătorul care a luat 10 de trefla." },
-  whist: { label: "Whist", icon: "🃏", hint: "Alege câte levate a făcut fiecare jucător (0–8)." },
-  totale: { label: "Totale", icon: "∑", hint: "Introdu manual punctajul pentru fiecare jucător." },
-  rentz: { label: "Rentz", icon: "👑", hint: "Atribuie fiecărui jucător un loc unic (1–4)." },
+  carouri: {
+    label: "Carouri",
+    icon: "♦",
+    hint: "Alege câte carouri a luat fiecare jucător (0–8).",
+  },
+  dame: {
+    label: "Dame",
+    icon: "👑",
+    hint: "Alege câte dame a luat fiecare jucător (0–4).",
+  },
+  popa_rosu: {
+    label: "Popa Roșu",
+    icon: "♥K",
+    hint: "Selectează jucătorul care a luat Popa Roșu.",
+  },
+  zece_trefla: {
+    label: "10 de trefla",
+    icon: "♣10",
+    hint: "Selectează jucătorul care a luat 10 de trefla.",
+  },
+  whist: {
+    label: "Whist",
+    icon: "🃏",
+    hint: "Alege câte levate a făcut fiecare jucător (0–8).",
+  },
+  totale: {
+    label: "Totale",
+    icon: "∑",
+    hint: "Introdu manual punctajul pentru fiecare jucător.",
+  },
+  rentz: {
+    label: "Rentz",
+    icon: "👑",
+    hint: "Atribuie fiecărui jucător un loc unic (1–4).",
+  },
 };
 
-// ================================
-// STARE JOC
-// ================================
-let players = []; // { id, name, score, availableSubgames: [] }
-let currentPlayerIndex = 0; // 0-3
+let players = [];
+let currentPlayerIndex = 0;
 let activeSubgameKey = null;
-let rounds = []; // { chooserId, subgameKey, deltas: [] }
+let rounds = [];
 
-// ================================
-// REFERINȚE DOM
-// ================================
 const startScreen = document.getElementById("start-screen");
 const gameScreen = document.getElementById("game-screen");
 const startForm = document.getElementById("startForm");
@@ -52,44 +71,29 @@ const newGameButton = document.getElementById("newGameButton");
 
 const topNewGameButton = document.getElementById("topNewGameButton");
 
-// ================================
-// INITIALIZARE
-// ================================
 document.addEventListener("DOMContentLoaded", () => {
-  // Evenimente
   startForm.addEventListener("submit", handleStartGame);
   modalCancel.addEventListener("click", closeModal);
   modalOverlay.addEventListener("click", (e) => {
-    if (e.target === modalOverlay) {
-      closeModal();
-    }
+    if (e.target === modalOverlay) closeModal();
   });
   modalConfirm.addEventListener("click", handleModalConfirm);
   newGameButton.addEventListener("click", resetToStart);
   topNewGameButton.addEventListener("click", resetToStart);
 
-  // Event delegation pentru butoanele de subjocuri
   playersArea.addEventListener("click", (event) => {
     const pill = event.target.closest(".subgame-pill");
     if (!pill) return;
-
     const subgameKey = pill.dataset.subgame;
     const playerIndex = parseInt(pill.dataset.playerIndex, 10);
-
-    // doar jucătorul curent poate alege un subjoc
-    if (playerIndex !== currentPlayerIndex) {
-      return;
-    }
-
+    if (playerIndex !== currentPlayerIndex) return;
     openSubgameModal(subgameKey);
   });
 
-  // Event delegation pentru chip-urile din modal (numere & jucători)
   modalContent.addEventListener("click", (event) => {
     const chip = event.target.closest(".value-chip");
     if (!chip) return;
-    const row = chip.closest(".modal-row");
-    if (!row) return;
+    const row = chip.closest(".modal-row") || modalContent;
     row.querySelectorAll(".value-chip").forEach((c) =>
       c.classList.remove("selected")
     );
@@ -97,12 +101,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// ================================
-// PORNIRE JOC
-// ================================
 function handleStartGame(event) {
   event.preventDefault();
-
   const p1 = document.getElementById("player1").value.trim() || "Jucător 1";
   const p2 = document.getElementById("player2").value.trim() || "Jucător 2";
   const p3 = document.getElementById("player3").value.trim() || "Jucător 3";
@@ -119,7 +119,6 @@ function handleStartGame(event) {
   activeSubgameKey = null;
   rounds = [];
 
-  // Afișare layout joc
   startScreen.classList.add("hidden");
   gameScreen.classList.remove("hidden");
 
@@ -127,14 +126,9 @@ function handleStartGame(event) {
   renderPlayersArea();
 }
 
-// ================================
-// RENDER CLASAMENT
-// ================================
 function renderScoreboard() {
-  // sortare fără a modifica array-ul original
   const sorted = [...players].sort((a, b) => b.score - a.score);
   scoreboardList.innerHTML = "";
-
   sorted.forEach((player, index) => {
     const li = document.createElement("li");
     li.className = "scoreboard-item" + (index === 0 ? " leader" : "");
@@ -147,24 +141,18 @@ function renderScoreboard() {
   });
 }
 
-// Returnează locul curent în clasament al unui jucător după scor
 function getPlayerRank(playerId) {
   const sorted = [...players].sort((a, b) => b.score - a.score);
   const index = sorted.findIndex((p) => p.id === playerId);
   return index >= 0 ? index + 1 : null;
 }
 
-// ================================
-// RENDER JUCĂTORI + SUBJOCURI
-// ================================
 function renderPlayersArea() {
   playersArea.innerHTML = "";
-
   players.forEach((player, idx) => {
     const card = document.createElement("article");
     card.className =
-      "player-card player-" + idx + (idx === currentPlayerIndex ? " current-turn" : "");
-
+      "player-card" + (idx === currentPlayerIndex ? " current-turn" : "");
     const isCurrent = idx === currentPlayerIndex;
     const rank = getPlayerRank(player.id);
 
@@ -198,14 +186,10 @@ function renderPlayersArea() {
           <div class="player-tagline">Scor curent: ${player.score}</div>
         </div>
         <div class="player-badge-row">
-          ${
-            rank
-              ? `<span class="rank-badge">Locul ${rank}</span>`
-              : ""
-          }
+          ${rank ? `<span class="rank-badge">Locul ${rank}</span>` : ""}
           ${
             isCurrent
-              ? '<div class="turn-indicator">Este rândul lui</div>'
+              ? '<span class="turn-indicator">Este rândul lui</span>'
               : ""
           }
         </div>
@@ -215,24 +199,18 @@ function renderPlayersArea() {
         ${subgamesHtml}
       </div>
     `;
-
     playersArea.appendChild(card);
   });
 }
 
-// ================================
-// MODAL SUBJOCURI
-// ================================
 function openSubgameModal(subgameKey) {
   activeSubgameKey = subgameKey;
   const currentPlayer = players[currentPlayerIndex];
   const cfg = SUBGAME_CONFIG[subgameKey];
   if (!cfg) return;
-
   modalTitle.textContent = `Rundă ${cfg.label} aleasă de ${currentPlayer.name}`;
   modalHint.textContent = cfg.hint || "";
 
-  // conținut diferit în funcție de subjoc
   switch (subgameKey) {
     case "carouri":
       buildCarouriModal();
@@ -255,28 +233,18 @@ function openSubgameModal(subgameKey) {
     case "rentz":
       buildRentzModal();
       break;
-    default:
-      break;
   }
 
   modalOverlay.classList.remove("hidden");
-  // for smooth transition
-  requestAnimationFrame(() => {
-    modalOverlay.classList.add("active");
-  });
 }
 
 function closeModal() {
-  modalOverlay.classList.remove("active");
-  setTimeout(() => {
-    modalOverlay.classList.add("hidden");
-    modalContent.innerHTML = "";
-    modalHint.textContent = "";
-    activeSubgameKey = null;
-  }, 180);
+  modalOverlay.classList.add("hidden");
+  modalContent.innerHTML = "";
+  modalHint.textContent = "";
+  activeSubgameKey = null;
 }
 
-// Helper pentru generare chip-uri numerice 0..max
 function numberChipsHtml(max) {
   let html = '<div class="value-chip-row">';
   for (let i = 0; i <= max; i++) {
@@ -288,7 +256,6 @@ function numberChipsHtml(max) {
   return html;
 }
 
-// Helper pentru Rentz 1..4 cu clase speciale
 function rentzChipsHtml() {
   let html = '<div class="value-chip-row">';
   for (let i = 1; i <= 4; i++) {
@@ -298,9 +265,6 @@ function rentzChipsHtml() {
   return html;
 }
 
-// ================================
-// BUILD MODAL CONTENT
-// ================================
 function buildCarouriModal() {
   modalContent.innerHTML = players
     .map(
@@ -346,17 +310,15 @@ function buildWhistModal() {
     .join("");
 }
 
-// Popa roșu & 10 trefla: badge-uri cu numele jucătorilor
 function buildPopaRosuModal() {
   const chips = players
     .map(
       (p) =>
-        `<button type="button" class="value-chip player-chip" data-player-id="${p.id}">${escapeHtml(
+        `<button type="button" class="value-chip player-chip" data-player-index="${p.id}">${escapeHtml(
           p.name
         )}</button>`
     )
     .join("");
-
   modalContent.innerHTML = `
     <div class="modal-row">
       <div class="modal-player-name">Alege jucătorul</div>
@@ -373,12 +335,11 @@ function buildZeceTreflaModal() {
   const chips = players
     .map(
       (p) =>
-        `<button type="button" class="value-chip player-chip" data-player-id="${p.id}">${escapeHtml(
+        `<button type="button" class="value-chip player-chip" data-player-index="${p.id}">${escapeHtml(
           p.name
         )}</button>`
     )
     .join("");
-
   modalContent.innerHTML = `
     <div class="modal-row">
       <div class="modal-player-name">Alege jucătorul</div>
@@ -398,12 +359,7 @@ function buildTotaleModal() {
       <div class="modal-row" data-player-index="${p.id}">
         <div class="modal-player-name">${escapeHtml(p.name)}</div>
         <div class="modal-input-container">
-          <input
-            type="number"
-            class="modal-input"
-            step="1"
-            value="0"
-          />
+          <input type="number" class="modal-input" value="0" />
           <span>puncte</span>
         </div>
       </div>
@@ -427,12 +383,8 @@ function buildRentzModal() {
     .join("");
 }
 
-// ================================
-// CONFIRMARE RUNDĂ
-// ================================
 function handleModalConfirm() {
   if (!activeSubgameKey) return;
-
   let deltas = new Array(players.length).fill(0);
   let valid = true;
 
@@ -458,55 +410,43 @@ function handleModalConfirm() {
     case "rentz":
       valid = applyRentzDeltas(deltas);
       break;
-    default:
-      break;
   }
 
-  if (!valid) {
-    return;
-  }
+  if (!valid) return;
 
-  // Salvează runda pentru raportul final
   rounds.push({
-    chooserId: players[currentPlayerIndex].id,
+    chooserId: currentPlayerIndex,
     subgameKey: activeSubgameKey,
     deltas: deltas.slice(),
   });
 
-  // Aplică scorurile
   players.forEach((p, idx) => {
     p.score += deltas[idx];
   });
 
-  // Marcați subjocul ca jucat pentru jucătorul curent
   const currentPlayer = players[currentPlayerIndex];
   currentPlayer.availableSubgames = currentPlayer.availableSubgames.filter(
     (key) => key !== activeSubgameKey
   );
 
   closeModal();
-
-  // Actualizări UI
   renderScoreboard();
   renderPlayersArea();
 
-  // Verifică sfârșitul jocului
   if (isGameFinished()) {
     showEndGameScreen();
   } else {
-    // Trecem la jucătorul următor
     advanceTurn();
   }
 }
 
-// ----- Aplicație deltas pentru fiecare subjoc -----
 function applyCarouriDeltas(deltas) {
   const rows = modalContent.querySelectorAll(".modal-row");
   rows.forEach((row) => {
-    const playerIndex = parseInt(row.dataset.playerIndex, 10);
-    const selected = row.querySelector(".value-chip.selected");
-    const value = selected ? parseInt(selected.dataset.value || "0", 10) : 0;
-    deltas[playerIndex] = value * -20;
+    const idx = parseInt(row.dataset.playerIndex, 10);
+    const sel = row.querySelector(".value-chip.selected");
+    const value = sel ? parseInt(sel.dataset.value || "0", 10) : 0;
+    deltas[idx] = value * -20;
   });
   return true;
 }
@@ -514,10 +454,10 @@ function applyCarouriDeltas(deltas) {
 function applyDameDeltas(deltas) {
   const rows = modalContent.querySelectorAll(".modal-row");
   rows.forEach((row) => {
-    const playerIndex = parseInt(row.dataset.playerIndex, 10);
-    const selected = row.querySelector(".value-chip.selected");
-    const value = selected ? parseInt(selected.dataset.value || "0", 10) : 0;
-    deltas[playerIndex] = value * -30;
+    const idx = parseInt(row.dataset.playerIndex, 10);
+    const sel = row.querySelector(".value-chip.selected");
+    const value = sel ? parseInt(sel.dataset.value || "0", 10) : 0;
+    deltas[idx] = value * -30;
   });
   return true;
 }
@@ -525,10 +465,10 @@ function applyDameDeltas(deltas) {
 function applyWhistDeltas(deltas) {
   const rows = modalContent.querySelectorAll(".modal-row");
   rows.forEach((row) => {
-    const playerIndex = parseInt(row.dataset.playerIndex, 10);
-    const selected = row.querySelector(".value-chip.selected");
-    const value = selected ? parseInt(selected.dataset.value || "0", 10) : 0;
-    deltas[playerIndex] = value * 20;
+    const idx = parseInt(row.dataset.playerIndex, 10);
+    const sel = row.querySelector(".value-chip.selected");
+    const value = sel ? parseInt(sel.dataset.value || "0", 10) : 0;
+    deltas[idx] = value * 20;
   });
   return true;
 }
@@ -539,8 +479,8 @@ function applyPopaRosuDeltas(deltas) {
     alert("Selectează jucătorul care a luat Popa Roșu.");
     return false;
   }
-  const playerIndex = parseInt(chip.dataset.playerId, 10);
-  deltas[playerIndex] = -100;
+  const idx = parseInt(chip.dataset.playerIndex, 10);
+  deltas[idx] = -100;
   return true;
 }
 
@@ -550,18 +490,18 @@ function applyZeceTreflaDeltas(deltas) {
     alert("Selectează jucătorul care a luat 10 de trefla.");
     return false;
   }
-  const playerIndex = parseInt(chip.dataset.playerId, 10);
-  deltas[playerIndex] = 100;
+  const idx = parseInt(chip.dataset.playerIndex, 10);
+  deltas[idx] = 100;
   return true;
 }
 
 function applyTotaleDeltas(deltas) {
   const rows = modalContent.querySelectorAll(".modal-row");
   rows.forEach((row) => {
-    const playerIndex = parseInt(row.dataset.playerIndex, 10);
+    const idx = parseInt(row.dataset.playerIndex, 10);
     const input = row.querySelector(".modal-input");
     const value = parseInt(input.value || "0", 10);
-    deltas[playerIndex] = isNaN(value) ? 0 : value;
+    deltas[idx] = isNaN(value) ? 0 : value;
   });
   return true;
 }
@@ -569,24 +509,23 @@ function applyTotaleDeltas(deltas) {
 function applyRentzDeltas(deltas) {
   const rows = modalContent.querySelectorAll(".modal-row");
   const places = [];
-  const usedPlaces = new Set();
+  const used = new Set();
 
-  rows.forEach((row, idx) => {
-    const selected = row.querySelector(".value-chip.selected");
-    if (!selected) {
-      places[idx] = null;
+  rows.forEach((row, rowIndex) => {
+    const sel = row.querySelector(".value-chip.selected");
+    if (!sel) {
+      places[rowIndex] = null;
     } else {
-      const placeNumber = parseInt(selected.dataset.value || "0", 10);
-      places[idx] = placeNumber;
-      if (usedPlaces.has(placeNumber)) {
-        usedPlaces.add("duplicate");
+      const place = parseInt(sel.dataset.value || "0", 10);
+      places[rowIndex] = place;
+      if (used.has(place)) {
+        used.add("dup");
       } else {
-        usedPlaces.add(placeNumber);
+        used.add(place);
       }
     }
   });
 
-  // verificare: trebuie să avem exact locurile 1-4 o singură dată
   if (
     places.length !== 4 ||
     !places.every((p) => typeof p === "number" && p >= 1 && p <= 4)
@@ -595,30 +534,20 @@ function applyRentzDeltas(deltas) {
     return false;
   }
 
-  if (usedPlaces.has("duplicate") || usedPlaces.size !== 4) {
+  if (used.has("dup") || used.size !== 4) {
     alert("Fiecare loc (1, 2, 3, 4) poate fi folosit o singură dată.");
     return false;
   }
 
-  const pointsByPlace = {
-    1: 400,
-    2: 300,
-    3: 200,
-    4: 100,
-  };
-
-  rows.forEach((row, idx) => {
-    const playerIndex = parseInt(row.dataset.playerIndex, 10);
-    const place = places[idx];
-    deltas[playerIndex] = pointsByPlace[place] || 0;
+  const pointsByPlace = { 1: 400, 2: 300, 3: 200, 4: 100 };
+  rows.forEach((row, rowIndex) => {
+    const idx = parseInt(row.dataset.playerIndex, 10);
+    const place = places[rowIndex];
+    deltas[idx] = pointsByPlace[place] || 0;
   });
-
   return true;
 }
 
-// ================================
-// RULAREA JOCULUI
-// ================================
 function advanceTurn() {
   currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
   renderPlayersArea();
@@ -629,10 +558,8 @@ function isGameFinished() {
 }
 
 function showEndGameScreen() {
-  // sortare descrescătoare după scor
   const sorted = [...players].sort((a, b) => b.score - a.score);
 
-  // clasament final
   let rankingHtml = `
     <div>
       <div class="endgame-section-title">Clasament final</div>
@@ -657,18 +584,17 @@ function showEndGameScreen() {
     </div>
   `;
 
-  // raport final pe alegeri
   let reportHtml = `
     <div>
       <div class="endgame-section-title">Raport final pe alegeri</div>
       ${players
-        .map((p) => {
+        .map((p, pIndex) => {
           const lines = players
-            .map((chooser) => {
+            .map((chooser, chooserIndex) => {
               let total = 0;
               rounds.forEach((r) => {
-                if (r.chooserId === chooser.id) {
-                  total += r.deltas[p.id] || 0;
+                if (r.chooserId === chooserIndex) {
+                  total += r.deltas[pIndex] || 0;
                 }
               });
               return `<li>Pe alegerile lui ${escapeHtml(
@@ -690,33 +616,21 @@ function showEndGameScreen() {
   `;
 
   endGameContent.innerHTML = rankingHtml + reportHtml;
-
   endGameOverlay.classList.remove("hidden");
-  requestAnimationFrame(() => {
-    endGameOverlay.classList.add("active");
-  });
 }
 
 function resetToStart() {
-  endGameOverlay.classList.remove("active");
-  setTimeout(() => {
-    endGameOverlay.classList.add("hidden");
-  }, 180);
-
-  // reset stare
-  players = [];
-  currentPlayerIndex = 0;
-  activeSubgameKey = null;
-  rounds = [];
-
-  // reset UI
+  endGameOverlay.classList.add("hidden");
   gameScreen.classList.add("hidden");
   startScreen.classList.remove("hidden");
+  players = [];
+  rounds = [];
+  currentPlayerIndex = 0;
+  activeSubgameKey = null;
+  scoreboardList.innerHTML = "";
+  playersArea.innerHTML = "";
 }
 
-// ================================
-// UTILITARE
-// ================================
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, "&amp;")
