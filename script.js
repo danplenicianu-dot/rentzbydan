@@ -590,38 +590,89 @@ function showEndGameScreen() {
     </div>
   `;
 
-  let reportHtml = `
+  
+let reportHtml = `
     <div>
-      <div class="endgame-section-title">Raport final pe alegeri</div>
-      ${players
-        .map((p, pIndex) => {
-          const lines = players
-            .map((chooser, chooserIndex) => {
-              let total = 0;
-              rounds.forEach((r) => {
-                if (r.chooserId === chooserIndex) {
-                  total += r.deltas[pIndex] || 0;
-                }
-              });
-              return `<li>Pe alegerile lui ${escapeHtml(
-                chooser.name
-              )} a luat: ${total} puncte</li>`;
-            })
-            .join("");
-          return `
-            <div class="final-report-card">
-              <div class="final-report-name">${escapeHtml(p.name)}</div>
-              <ul class="final-report-list">
-                ${lines}
-              </ul>
-            </div>
-          `;
-        })
-        .join("")}
+      <div class="endgame-toggle">
+        <button class="endgame-toggle-btn active" data-report="choices">Raport pe alegeri</button>
+        <button class="endgame-toggle-btn" data-report="subgames">Raport pe sub-jocuri</button>
+      </div>
+      <div id="report-choices">
+        <div class="endgame-section-title">Raport final pe alegeri</div>
+        ${players
+          .map((p, pIndex) => {
+            const lines = players
+              .map((chooser, chooserIndex) => {
+                let total = 0;
+                rounds.forEach((r) => {
+                  if (r.chooserId === chooserIndex) {
+                    total += r.deltas[pIndex] || 0;
+                  }
+                });
+                return `<li>Pe alegerile lui ${escapeHtml(
+                  chooser.name
+                )} a luat: ${total} puncte</li>`;
+              })
+              .join("");
+            return `
+              <div class="final-report-card">
+                <div class="final-report-name">${escapeHtml(p.name)}</div>
+                <ul class="final-report-list">
+                  ${lines}
+                </ul>
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+      <div id="report-subgames" class="hidden">
+        <div class="endgame-section-title">Raport final pe sub-jocuri</div>
+        ${players
+          .map((p, pIndex) => {
+            const lines = Object.keys(SUBGAME_CONFIG)
+              .map((key) => {
+                let total = 0;
+                rounds.forEach((r) => {
+                  if (r.subgameKey === key) {
+                    total += r.deltas[pIndex] || 0;
+                  }
+                });
+                const label = SUBGAME_CONFIG[key].label;
+                return `<li>La ${label}: ${total} puncte</li>`;
+              })
+              .join("");
+            return `
+              <div class="final-report-card">
+                <div class="final-report-name">${escapeHtml(p.name)}</div>
+                <ul class="final-report-list">
+                  ${lines}
+                </ul>
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
     </div>
   `;
 
   endGameContent.innerHTML = rankingHtml + reportHtml;
+  const toggleButtons = endGameContent.querySelectorAll(".endgame-toggle-btn");
+  const choicesSection = endGameContent.querySelector("#report-choices");
+  const subgamesSection = endGameContent.querySelector("#report-subgames");
+  toggleButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      toggleButtons.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      const mode = btn.dataset.report;
+      if (mode === "choices") {
+        choicesSection.classList.remove("hidden");
+        subgamesSection.classList.add("hidden");
+      } else {
+        choicesSection.classList.add("hidden");
+        subgamesSection.classList.remove("hidden");
+      }
+    });
+  });
   endGameOverlay.classList.remove("hidden");
 }
 

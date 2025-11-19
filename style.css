@@ -468,6 +468,29 @@ body {
   width: 80px;
 }
 
+
+.endgame-toggle {
+  display: flex;
+  gap: 4px;
+  margin: 4px 0 6px 0;
+}
+
+.endgame-toggle-btn {
+  flex: 1;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  border-radius: 999px;
+  padding: 4px 6px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.endgame-toggle-btn.active {
+  background: #111827;
+  color: #f9fafb;
+  border-color: #111827;
+}
+
 .endgame-section-title {
   font-size: 11px;
   text-transform: uppercase;
