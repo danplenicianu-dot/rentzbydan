@@ -807,34 +807,49 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
+
+const THEME_KEY = "rentzTheme";
+function safeGetTheme(){
+  try {
+    return localStorage.getItem(THEME_KEY);
+  } catch (e) {
+    return null;
+  }
+}
+function safeSetTheme(val){
+  try {
+    localStorage.setItem(THEME_KEY, val);
+  } catch (e) {}
+}
+
 const themeBtn=document.getElementById("themeToggle");
 if(themeBtn){
- const saved=localStorage.getItem("rentzTheme");
- if(saved==="gold") document.documentElement.classList.add("theme-gold");
- themeBtn.addEventListener("click",()=>{
-   const root=document.documentElement;
-   if(root.classList.contains("theme-gold")){
-     root.classList.remove("theme-gold");
-     localStorage.setItem("rentzTheme","default");
-   } else {
-     root.classList.add("theme-gold");
-     localStorage.setItem("rentzTheme","gold");
-   }
- });
+  const saved=safeGetTheme();
+  if(saved==="gold") document.documentElement.classList.add("theme-gold");
+  themeBtn.addEventListener("click",()=>{
+    const root=document.documentElement;
+    if(root.classList.contains("theme-gold")){
+      root.classList.remove("theme-gold");
+      safeSetTheme("default");
+    } else {
+      root.classList.add("theme-gold");
+      safeSetTheme("gold");
+    }
+  });
 }
 
 const aspectBtn=document.getElementById("aspectButton");
 if(aspectBtn){
-  const saved=localStorage.getItem("rentzTheme");
+  const saved=safeGetTheme();
   if(saved==="gold") document.documentElement.classList.add("theme-gold");
   aspectBtn.addEventListener("click",()=>{
     const root=document.documentElement;
     if(root.classList.contains("theme-gold")){
       root.classList.remove("theme-gold");
-      localStorage.setItem("rentzTheme","default");
+      safeSetTheme("default");
     } else {
       root.classList.add("theme-gold");
-      localStorage.setItem("rentzTheme","gold");
+      safeSetTheme("gold");
     }
   });
 }
