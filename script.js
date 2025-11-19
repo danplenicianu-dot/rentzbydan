@@ -816,26 +816,26 @@ function safeGetTheme(){
     return null;
   }
 }
-function safeSetTheme(val){
+function safeSetTheme(value){
   try {
-    localStorage.setItem(THEME_KEY, val);
+    localStorage.setItem(THEME_KEY, value);
   } catch (e) {}
 }
 
 const themeBtn=document.getElementById("themeToggle");
 if(themeBtn){
-  const saved=safeGetTheme();
-  if(saved==="gold") document.documentElement.classList.add("theme-gold");
-  themeBtn.addEventListener("click",()=>{
-    const root=document.documentElement;
-    if(root.classList.contains("theme-gold")){
-      root.classList.remove("theme-gold");
-      safeSetTheme("default");
-    } else {
-      root.classList.add("theme-gold");
-      safeSetTheme("gold");
-    }
-  });
+ const saved=safeGetTheme();
+ if(saved==="gold") document.documentElement.classList.add("theme-gold");
+ themeBtn.addEventListener("click",()=>{
+   const root=document.documentElement;
+   if(root.classList.contains("theme-gold")){
+     root.classList.remove("theme-gold");
+     localStorage.setItem("rentzTheme","default");
+   } else {
+     root.classList.add("theme-gold");
+     localStorage.setItem("rentzTheme","gold");
+   }
+ });
 }
 
 const aspectBtn=document.getElementById("aspectButton");
