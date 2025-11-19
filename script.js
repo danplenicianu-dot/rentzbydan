@@ -822,3 +822,19 @@ if(themeBtn){
    }
  });
 }
+
+const aspectBtn=document.getElementById("aspectButton");
+if(aspectBtn){
+  const saved=localStorage.getItem("rentzTheme");
+  if(saved==="gold") document.documentElement.classList.add("theme-gold");
+  aspectBtn.addEventListener("click",()=>{
+    const root=document.documentElement;
+    if(root.classList.contains("theme-gold")){
+      root.classList.remove("theme-gold");
+      localStorage.setItem("rentzTheme","default");
+    } else {
+      root.classList.add("theme-gold");
+      localStorage.setItem("rentzTheme","gold");
+    }
+  });
+}

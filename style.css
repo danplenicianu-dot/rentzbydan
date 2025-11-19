@@ -602,7 +602,7 @@ body {
 }
 
 
-.theme-toggle{
+/* removed theme-toggle */ .x-theme-toggle{
   width:30px;
   height:30px;
   border-radius:9999px;
@@ -614,14 +614,14 @@ body {
   align-items:center;
   justify-content:center;
 }
-.theme-toggle::before{
+/* removed theme-toggle */ .x-theme-toggle::before{
   content:"";
   width:18px;
   height:18px;
   border-radius:50%;
   background:linear-gradient(135deg,#facc15,#f97316);
 }
-.theme-gold .theme-toggle{background:#e5e7eb;}
+.theme-gold /* removed theme-toggle */ .x-theme-toggle{background:#e5e7eb;}
 .theme-gold{--bg:#050608;--panel:#0b0f1a;--text:#f9fafb;}
 .theme-gold body,.theme-gold .app-shell{background:var(--bg);color:var(--text);}
 .theme-gold .player-card,.theme-gold .scoreboard,.theme-gold .modal-card,.theme-gold .start-card{background:var(--panel);border-color:#2d2d35;}
