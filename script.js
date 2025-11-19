@@ -359,7 +359,7 @@ function buildTotaleModal() {
       <div class="modal-row" data-player-index="${p.id}">
         <div class="modal-player-name">${escapeHtml(p.name)}</div>
         <div class="modal-input-container">
-          <input type="number" class="modal-input" value="0" />
+          <input type="number" class="modal-input" />
           <span>puncte</span>
         </div>
       </div>
@@ -500,8 +500,14 @@ function applyTotaleDeltas(deltas) {
   rows.forEach((row) => {
     const idx = parseInt(row.dataset.playerIndex, 10);
     const input = row.querySelector(".modal-input");
-    const value = parseInt(input.value || "0", 10);
-    deltas[idx] = isNaN(value) ? 0 : value;
+    const raw = parseInt(input.value, 10);
+    if (isNaN(raw)) {
+      deltas[idx] = 0;
+    } else {
+      // Totale acceptă doar puncte negative: orice valoare pozitivă este inversată automat
+      const negativeValue = raw > 0 ? -raw : raw;
+      deltas[idx] = negativeValue;
+    }
   });
   return true;
 }
