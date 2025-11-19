@@ -600,3 +600,68 @@ body {
     padding: 18px 16px 16px 16px;
   }
 }
+
+.theme-toggle{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#facc15,#f97316);border:none;cursor:pointer;margin-right:8px;}
+.theme-gold .theme-toggle{background:#e5e7eb;}
+.theme-gold{--bg:#050608;--panel:#0b0f1a;--text:#f9fafb;}
+.theme-gold body,.theme-gold .app-shell{background:var(--bg);color:var(--text);}
+.theme-gold .player-card,.theme-gold .scoreboard,.theme-gold .modal-card,.theme-gold .start-card{background:var(--panel);border-color:#2d2d35;}
+.theme-gold .btn-primary{background:linear-gradient(135deg,#facc15,#f97316);border-color:#fbbf24;color:#111;}
+.theme-gold .btn-ghost{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.1);color:#eee;}
+
+/* refine gold theme visuals */
+.theme-gold body{
+  background:#020617;
+  color:#e5e7eb;
+}
+.theme-gold .app-shell{
+  background:radial-gradient(circle at top,#111827 0,#020617 55%);
+}
+.theme-gold .topbar{
+  background:rgba(15,23,42,0.96);
+  border-bottom:1px solid #27272f;
+}
+.theme-gold .panel{
+  background:transparent;
+}
+.theme-gold .scoreboard{
+  background:#020617;
+}
+.theme-gold .player-card{
+  background:#020617;
+}
+.theme-gold .scoreboard-item{
+  background:transparent;
+  border-color:#111827;
+}
+.theme-gold .scoreboard-item.leader{
+  background:rgba(248,250,252,0.04);
+  border-color:#fbbf24;
+}
+.theme-gold .scoreboard-header h2{
+  color:#f9fafb;
+}
+.theme-gold .app-title{
+  color:#f9fafb;
+}
+
+/* Gold theme: cleaner final report cards (no white boxes) */
+.theme-gold .final-report-card {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.theme-gold .final-report-name {
+  color: #f9fafb !important;
+}
+
+.theme-gold .final-report-list {
+  padding-left: 18px;
+}
+
+.theme-gold .final-report-list li {
+  color: #e5e7eb !important;
+}

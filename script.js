@@ -806,3 +806,19 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
+const themeBtn=document.getElementById("themeToggle");
+if(themeBtn){
+ const saved=localStorage.getItem("rentzTheme");
+ if(saved==="gold") document.documentElement.classList.add("theme-gold");
+ themeBtn.addEventListener("click",()=>{
+   const root=document.documentElement;
+   if(root.classList.contains("theme-gold")){
+     root.classList.remove("theme-gold");
+     localStorage.setItem("rentzTheme","default");
+   } else {
+     root.classList.add("theme-gold");
+     localStorage.setItem("rentzTheme","gold");
+   }
+ });
+}
