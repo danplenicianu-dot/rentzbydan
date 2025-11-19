@@ -65,9 +65,17 @@ const modalContent = document.getElementById("modalContent");
 const modalCancel = document.getElementById("modalCancel");
 const modalConfirm = document.getElementById("modalConfirm");
 
+
 const endGameOverlay = document.getElementById("endGameOverlay");
 const endGameContent = document.getElementById("endGameContent");
 const newGameButton = document.getElementById("newGameButton");
+
+const reportOverlay = document.getElementById("reportOverlay");
+const reportTitle = document.getElementById("reportTitle");
+const reportContent = document.getElementById("reportContent");
+const closeReportButton = document.getElementById("closeReportButton");
+const openReportChoicesButton = document.getElementById("openReportChoices");
+const openReportSubgamesButton = document.getElementById("openReportSubgames");
 
 const topNewGameButton = document.getElementById("topNewGameButton");
 
@@ -80,6 +88,27 @@ document.addEventListener("DOMContentLoaded", () => {
   modalConfirm.addEventListener("click", handleModalConfirm);
   newGameButton.addEventListener("click", resetToStart);
   topNewGameButton.addEventListener("click", resetToStart);
+
+  if (openReportChoicesButton) {
+    openReportChoicesButton.addEventListener("click", () => {
+      openLiveReport("choices");
+    });
+  }
+  if (openReportSubgamesButton) {
+    openReportSubgamesButton.addEventListener("click", () => {
+      openLiveReport("subgames");
+    });
+  }
+  if (closeReportButton && reportOverlay) {
+    closeReportButton.addEventListener("click", () => {
+      reportOverlay.classList.add("hidden");
+    });
+    reportOverlay.addEventListener("click", (e) => {
+      if (e.target === reportOverlay) {
+        reportOverlay.classList.add("hidden");
+      }
+    });
+  }
 
   playersArea.addEventListener("click", (event) => {
     const pill = event.target.closest(".subgame-pill");
@@ -424,6 +453,7 @@ function handleModalConfirm() {
     p.score += deltas[idx];
   });
 
+
   const currentPlayer = players[currentPlayerIndex];
   currentPlayer.availableSubgames = currentPlayer.availableSubgames.filter(
     (key) => key !== activeSubgameKey
@@ -561,6 +591,86 @@ function advanceTurn() {
 
 function isGameFinished() {
   return players.every((p) => p.availableSubgames.length === 0);
+}
+
+
+function buildChoicesReportHtml() {
+  return `
+    <div>
+      <div class="endgame-section-title">Raport pe alegeri</div>
+      ${players
+        .map((p, pIndex) => {
+          const lines = players
+            .map((chooser, chooserIndex) => {
+              let total = 0;
+              rounds.forEach((r) => {
+                if (r.chooserId === chooserIndex) {
+                  total += r.deltas[pIndex] || 0;
+                }
+              });
+              return `<li>Pe alegerile lui ${escapeHtml(
+                chooser.name
+              )} a luat: ${total} puncte</li>`;
+            })
+            .join("");
+          return `
+            <div class="final-report-card">
+              <div class="final-report-name">${escapeHtml(p.name)}</div>
+              <ul class="final-report-list">
+                ${lines}
+              </ul>
+            </div>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
+function buildSubgamesReportHtml() {
+  return `
+    <div>
+      <div class="endgame-section-title">Raport pe sub-jocuri</div>
+      ${players
+        .map((p, pIndex) => {
+          const lines = Object.keys(SUBGAME_CONFIG)
+            .map((key) => {
+              let total = 0;
+              rounds.forEach((r) => {
+                if (r.subgameKey === key) {
+                  total += r.deltas[pIndex] || 0;
+                }
+              });
+              const label = SUBGAME_CONFIG[key].label;
+              return `<li>La ${label}: ${total} puncte</li>`;
+            })
+            .join("");
+          return `
+            <div class="final-report-card">
+              <div class="final-report-name">${escapeHtml(p.name)}</div>
+              <ul class="final-report-list">
+                ${lines}
+              </ul>
+            </div>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
+function openLiveReport(mode) {
+  if (!reportOverlay || !reportContent || !reportTitle) return;
+  if (!players.length) return;
+
+  if (mode === "subgames") {
+    reportTitle.textContent = "Raport pe sub-jocuri (live)";
+    reportContent.innerHTML = buildSubgamesReportHtml();
+  } else {
+    reportTitle.textContent = "Raport pe alegeri (live)";
+    reportContent.innerHTML = buildChoicesReportHtml();
+  }
+  reportOverlay.classList.remove("hidden");
 }
 
 function showEndGameScreen() {
