@@ -715,12 +715,12 @@ function handleModalConfirm() {
   closeModal();
   renderScoreboard();
   renderPlayersArea();
-  saveGameState();
 
   if (isGameFinished()) {
     showEndGameScreen();
   } else {
     advanceTurn();
+    saveGameState();
   }
 }
 
