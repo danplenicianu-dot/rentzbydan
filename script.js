@@ -90,10 +90,10 @@ function updateGameTimerDisplay() {
   gameTimerValue.textContent = text;
 }
 
-function startGameTimer() {
+function startGameTimer(initialSeconds = 0, shouldRun = true) {
   if (!gameTimerValue) return;
-  gameTimerSeconds = 0;
-  gameTimerRunning = true;
+  gameTimerSeconds = typeof initialSeconds === "number" && initialSeconds > 0 ? initialSeconds : 0;
+  gameTimerRunning = !!shouldRun;
   updateGameTimerDisplay();
   if (gameTimerInterval) clearInterval(gameTimerInterval);
   gameTimerInterval = setInterval(() => {
@@ -102,7 +102,7 @@ function startGameTimer() {
     updateGameTimerDisplay();
   }, 1000);
   if (gameTimerToggle) {
-    gameTimerToggle.textContent = "Pauză";
+    gameTimerToggle.textContent = gameTimerRunning ? "Pauză" : "Continuă";
   }
   if (gameTimerContainer) {
     gameTimerContainer.classList.remove("hidden");
@@ -136,9 +136,156 @@ function resetGameTimer() {
     gameTimerContainer.classList.add("hidden");
   }
   if (gameTimerToggle) {
-    gameTimerToggle.textContent = "Pauză";
+    gameTimerToggle.textContent = gameTimerRunning ? "Pauză" : "Continuă";
   }
 }
+
+const GAME_STATE_KEY = "rentzGameStateV1";
+
+function getCurrentGameState() {
+  if (!players || !players.length) return null;
+  try {
+    return {
+      players: players.map((p, index) => ({
+        id: typeof p.id === "number" ? p.id : index,
+        name: p.name,
+        score: typeof p.score === "number" ? p.score : 0,
+        availableSubgames: Array.isArray(p.availableSubgames)
+          ? p.availableSubgames.slice()
+          : [],
+      })),
+      currentPlayerIndex:
+        typeof currentPlayerIndex === "number" ? currentPlayerIndex : 0,
+      rounds: Array.isArray(rounds)
+        ? rounds.map((r) => ({
+            chooserId:
+              typeof r.chooserId === "number" ? r.chooserId : 0,
+            subgameKey: r.subgameKey,
+            deltas: Array.isArray(r.deltas) ? r.deltas.slice() : [],
+          }))
+        : [],
+      timer: {
+        seconds:
+          typeof gameTimerSeconds === "number" ? gameTimerSeconds : 0,
+        running: !!gameTimerRunning,
+      },
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveGameState() {
+  try {
+    const state = getCurrentGameState();
+    if (!state) {
+      localStorage.removeItem(GAME_STATE_KEY);
+      return;
+    }
+    localStorage.setItem(GAME_STATE_KEY, JSON.stringify(state));
+  } catch (e) {
+    // ignore
+  }
+}
+
+function clearSavedGameState() {
+  try {
+    localStorage.removeItem(GAME_STATE_KEY);
+  } catch (e) {}
+}
+
+function getSavedGameState() {
+  try {
+    const raw = localStorage.getItem(GAME_STATE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (!data || !Array.isArray(data.players) || !data.players.length) {
+      return null;
+    }
+    return data;
+  } catch (e) {
+    return null;
+  }
+}
+
+function applyGameState(state) {
+  if (!state || !Array.isArray(state.players)) return;
+
+  // Rebuild players
+  players = state.players.map((p, index) => {
+    const baseId = typeof p.id === "number" ? p.id : index;
+    const safeName =
+      typeof p.name === "string" && p.name.trim()
+        ? p.name
+        : `Jucător ${index + 1}`;
+    const safeScore = typeof p.score === "number" ? p.score : 0;
+    let available = Array.isArray(p.availableSubgames)
+      ? p.availableSubgames.filter((key) => SUBGAMES.includes(key))
+      : [];
+    if (!available.length) {
+      available = [...SUBGAMES];
+    }
+    return {
+      id: baseId,
+      name: safeName,
+      score: safeScore,
+      availableSubgames: available,
+    };
+  });
+
+  // Current player index
+  currentPlayerIndex =
+    typeof state.currentPlayerIndex === "number"
+      ? state.currentPlayerIndex
+      : 0;
+  if (
+    currentPlayerIndex < 0 ||
+    currentPlayerIndex >= players.length
+  ) {
+    currentPlayerIndex = 0;
+  }
+
+  // Rounds
+  if (Array.isArray(state.rounds)) {
+    rounds = state.rounds
+      .map((r) => {
+        if (!SUBGAMES.includes(r.subgameKey)) return null;
+        const deltas =
+          Array.isArray(r.deltas) && r.deltas.length === players.length
+            ? r.deltas.map((d) =>
+                typeof d === "number" ? d : 0
+              )
+            : new Array(players.length).fill(0);
+        return {
+          chooserId:
+            typeof r.chooserId === "number" ? r.chooserId : 0,
+          subgameKey: r.subgameKey,
+          deltas,
+        };
+      })
+      .filter(Boolean);
+  } else {
+    rounds = [];
+  }
+
+  // Restore timer
+  const timer = state.timer || {};
+  const seconds =
+    typeof timer.seconds === "number" && timer.seconds > 0
+      ? timer.seconds
+      : 0;
+  const running =
+    typeof timer.running === "boolean" ? timer.running : true;
+
+  startScreen.classList.add("hidden");
+  gameScreen.classList.remove("hidden");
+
+  startGameTimer(seconds, running);
+
+  renderScoreboard();
+  renderPlayersArea();
+}
+
 
 const modalOverlay = document.getElementById("modalOverlay");
 const modalTitle = document.getElementById("modalTitle");
@@ -166,6 +313,24 @@ document.addEventListener("DOMContentLoaded", () => {
   if (gameTimerToggle) {
     gameTimerToggle.addEventListener("click", togglePauseGameTimer);
   }
+
+  // Întreabă dacă reluăm un joc salvat
+  const savedState = getSavedGameState();
+  if (savedState) {
+    try {
+      const shouldRestore = window.confirm(
+        "Ai un joc de Rentz în desfășurare. Vrei să îl reiei?"
+      );
+      if (shouldRestore) {
+        applyGameState(savedState);
+      } else {
+        clearSavedGameState();
+      }
+    } catch (e) {
+      // dacă confirm e blocat, ignorăm
+    }
+  }
+
   modalCancel.addEventListener("click", closeModal);
   modalOverlay.addEventListener("click", (e) => {
     if (e.target === modalOverlay) closeModal();
@@ -240,6 +405,7 @@ function handleStartGame(event) {
 
   renderScoreboard();
   renderPlayersArea();
+  saveGameState();
 }
 
 function renderScoreboard() {
@@ -549,6 +715,7 @@ function handleModalConfirm() {
   closeModal();
   renderScoreboard();
   renderPlayersArea();
+  saveGameState();
 
   if (isGameFinished()) {
     showEndGameScreen();
@@ -872,6 +1039,7 @@ let reportHtml = `
   });
   endGameOverlay.classList.remove("hidden");
   stopGameTimer();
+  clearSavedGameState();
 }
 
 function resetToStart() {
@@ -885,6 +1053,7 @@ function resetToStart() {
   activeSubgameKey = null;
   scoreboardList.innerHTML = "";
   playersArea.innerHTML = "";
+  clearSavedGameState();
 }
 
 function escapeHtml(str) {
