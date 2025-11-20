@@ -686,27 +686,37 @@ body {
 }
 
 
-/* HARD FIX: force chips inline always */
-.modal-row {
-  display: flex !important;
+.game-timer {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
   align-items: center;
-  justify-content: flex-start;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  opacity: 0.8;
 }
 
-.modal-row .modal-player-name {
-  flex: 0 0 120px !important;
+.game-timer-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+  opacity: 0.7;
 }
 
-.modal-row .modal-input-container {
-  flex: 1 1 auto !important;
-  display: flex !important;
-  flex-wrap: nowrap !important;
-  overflow-x: auto !important;
-  gap: 0.4rem !important;
-  justify-content: flex-start !important;
+.game-timer-value {
+  font-variant-numeric: tabular-nums;
 }
 
-.value-chip {
-  flex: 0 0 auto !important;
-  white-space: nowrap !important;
+.btn-xs {
+  padding: 0.1rem 0.45rem;
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
+
+
+.app-version-tag {
+  margin-left: 0.4rem;
+  font-size: 0.7rem;
+  opacity: 0.65;
 }
