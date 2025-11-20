@@ -58,6 +58,88 @@ const startForm = document.getElementById("startForm");
 const scoreboardList = document.getElementById("scoreboardList");
 const playersArea = document.getElementById("playersArea");
 
+
+let gameTimerSeconds = 0;
+let gameTimerInterval = null;
+let gameTimerRunning = false;
+
+const gameTimerContainer = document.getElementById("gameTimerContainer");
+const gameTimerValue = document.getElementById("gameTimerValue");
+const gameTimerToggle = document.getElementById("gameTimerToggle");
+
+function updateGameTimerDisplay() {
+  if (!gameTimerValue) return;
+  const hours = Math.floor(gameTimerSeconds / 3600);
+  const minutes = Math.floor((gameTimerSeconds % 3600) / 60);
+  const seconds = gameTimerSeconds % 60;
+
+  let text = "";
+  if (hours > 0) {
+    text =
+      String(hours).padStart(2, "0") +
+      ":" +
+      String(minutes).padStart(2, "0") +
+      ":" +
+      String(seconds).padStart(2, "0");
+  } else {
+    text =
+      String(minutes).padStart(2, "0") +
+      ":" +
+      String(seconds).padStart(2, "0");
+  }
+  gameTimerValue.textContent = text;
+}
+
+function startGameTimer() {
+  if (!gameTimerValue) return;
+  gameTimerSeconds = 0;
+  gameTimerRunning = true;
+  updateGameTimerDisplay();
+  if (gameTimerInterval) clearInterval(gameTimerInterval);
+  gameTimerInterval = setInterval(() => {
+    if (!gameTimerRunning) return;
+    gameTimerSeconds += 1;
+    updateGameTimerDisplay();
+  }, 1000);
+  if (gameTimerToggle) {
+    gameTimerToggle.textContent = "Pauză";
+  }
+  if (gameTimerContainer) {
+    gameTimerContainer.classList.remove("hidden");
+  }
+}
+
+function togglePauseGameTimer() {
+  if (!gameTimerToggle) return;
+  if (!gameTimerRunning) {
+    gameTimerRunning = true;
+    gameTimerToggle.textContent = "Pauză";
+  } else {
+    gameTimerRunning = false;
+    gameTimerToggle.textContent = "Continuă";
+  }
+}
+
+function stopGameTimer() {
+  if (gameTimerInterval) {
+    clearInterval(gameTimerInterval);
+    gameTimerInterval = null;
+  }
+  gameTimerRunning = false;
+}
+
+function resetGameTimer() {
+  stopGameTimer();
+  gameTimerSeconds = 0;
+  updateGameTimerDisplay();
+  if (gameTimerContainer) {
+    gameTimerContainer.classList.add("hidden");
+  }
+  if (gameTimerToggle) {
+    gameTimerToggle.textContent = "Pauză";
+  }
+}
+
 const modalOverlay = document.getElementById("modalOverlay");
 const modalTitle = document.getElementById("modalTitle");
 const modalHint = document.getElementById("modalHint");
@@ -81,6 +163,9 @@ const topNewGameButton = document.getElementById("topNewGameButton");
 
 document.addEventListener("DOMContentLoaded", () => {
   startForm.addEventListener("submit", handleStartGame);
+  if (gameTimerToggle) {
+    gameTimerToggle.addEventListener("click", togglePauseGameTimer);
+  }
   modalCancel.addEventListener("click", closeModal);
   modalOverlay.addEventListener("click", (e) => {
     if (e.target === modalOverlay) closeModal();
@@ -150,6 +235,8 @@ function handleStartGame(event) {
 
   startScreen.classList.add("hidden");
   gameScreen.classList.remove("hidden");
+
+  startGameTimer();
 
   renderScoreboard();
   renderPlayersArea();
@@ -784,12 +871,14 @@ let reportHtml = `
     });
   });
   endGameOverlay.classList.remove("hidden");
+  stopGameTimer();
 }
 
 function resetToStart() {
   endGameOverlay.classList.add("hidden");
   gameScreen.classList.add("hidden");
   startScreen.classList.remove("hidden");
+  resetGameTimer();
   players = [];
   rounds = [];
   currentPlayerIndex = 0;

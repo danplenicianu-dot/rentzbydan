@@ -684,3 +684,32 @@ body {
 .theme-gold .final-report-list li {
   color: #e5e7eb !important;
 }
+
+
+.game-timer {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  opacity: 0.8;
+}
+
+.game-timer-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+  opacity: 0.7;
+}
+
+.game-timer-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.btn-xs {
+  padding: 0.1rem 0.45rem;
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
