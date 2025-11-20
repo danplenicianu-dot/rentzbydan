@@ -713,3 +713,10 @@ body {
   font-size: 0.68rem;
   line-height: 1.2;
 }
+
+
+.app-version-tag {
+  margin-left: 0.4rem;
+  font-size: 0.7rem;
+  opacity: 0.65;
+}
